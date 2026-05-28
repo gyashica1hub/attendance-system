@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block auth_content %}
+<div class="min-vh-100 d-flex align-items-center" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8 text-center text-white">
+                <h1 class="display-3 fw-bold mb-4">
+                    <i class="bi bi-camera-fill me-3"></i>Smart Attendance
+                </h1>
+                <p class="lead mb-5">AI-Powered Face Recognition Attendance System for Schools & Colleges</p>
+                
+                <div class="row g-4 mb-5">
+                    <div class="col-md-4">
+                        <div class="card bg-white bg-opacity-10 border-0 text-white p-4">
+                            <i class="bi bi-camera fs-1 mb-3"></i>
+                            <h5>Face Recognition</h5>
+                            <p class="small">Mark attendance with AI-powered face detection</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-white bg-opacity-10 border-0 text-white p-4">
+                            <i class="bi bi-graph-up fs-1 mb-3"></i>
+                            <h5>Real-time Reports</h5>
+                            <p class="small">Track attendance with detailed analytics</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-white bg-opacity-10 border-0 text-white p-4">
+                            <i class="bi bi-cloud-check fs-1 mb-3"></i>
+                            <h5>Cloud Based</h5>
+                            <p class="small">Access from anywhere, anytime</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="d-flex justify-content-center gap-3">
+                    <a href="{{ url_for('auth.login') }}" class="btn btn-light btn-lg px-5 rounded-pill fw-bold">
+                        <i class="bi bi-box-arrow-in-right me-2"></i>Login
+                    </a>
+                    <a href="{{ url_for('auth.register') }}" class="btn btn-outline-light btn-lg px-5 rounded-pill fw-bold">
+                        <i class="bi bi-person-plus me-2"></i>Register School
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}Register - Smart Attendance{% endblock %}
+
+{% block auth_content %}
+<div class="min-vh-100 d-flex align-items-center py-5" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card p-5">
+                    <div class="text-center mb-4">
+                        <i class="bi bi-building fs-1 text-primary"></i>
+                        <h3 class="mt-3 fw-bold">Register Your School</h3>
+                        <p class="text-muted">Start with free plan</p>
+                    </div>
+                    
+                    <form method="POST" action="{{ url_for('auth.register') }}">
+                        <div class="mb-3">
+                            <label class="form-label">School Name</label>
+                            <input type="text" name="school_name" class="form-control" 
+                                   placeholder="ABC Public School" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Your Name</label>
+                            <input type="text" name="username" class="form-control" 
+                                   placeholder="John Doe" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            <input type="email" name="email" class="form-control" 
+                                   placeholder="principal@school.com" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Password</label>
+                            <input type="password" name="password" class="form-control" 
+                                   placeholder="Min 6 characters" required minlength="6">
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label">Confirm Password</label>
+                            <input type="password" name="confirm_password" class="form-control" 
+                                   placeholder="Repeat password" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 btn-lg">
+                            <i class="bi bi-check-circle me-2"></i>Create Account
+                        </button>
+                    </form>
+                    
+                    <hr class="my-4">
+                    <p class="text-center mb-0">
+                        Already have an account? 
+                        <a href="{{ url_for('auth.login') }}" class="text-decoration-none fw-bold">Login</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
