@@ -58,7 +58,7 @@ def create_app(config_name='default'):
     os.makedirs(os.path.join(app.root_path, 'static', 'img'), exist_ok=True)
     
     # Create tables
-    with app.app_context():
-        db.create_all()
+    # with app.app_context():
+    #     db.create_all()
     
     return app
