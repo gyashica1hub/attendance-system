@@ -7,7 +7,8 @@ Werkzeug==3.0.1
 python-dotenv==1.0.0
 gunicorn==21.2.0
 openpyxl==3.1.5
-numpy
-opencv-python
-Pillow
+numpy==1.26.4
+opencv-python-headless==4.10.0.84
+Pillow==10.4.0
 psycopg2-binary==2.9.9
+qrcode[pil]==7.4.2
