@@ -1,42 +1,36 @@
 {% extends "base.html" %}
-
-{% block title %}Login - Smart Attendance{% endblock %}
+{% block title %}Login{% endblock %}
 
 {% block auth_content %}
-<div class="min-vh-100 d-flex align-items-center" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-md-5">
-                <div class="card p-5">
-                    <div class="text-center mb-4">
-                        <i class="bi bi-camera-fill fs-1 text-primary"></i>
-                        <h3 class="mt-3 fw-bold">Welcome Back</h3>
-                        <p class="text-muted">Login to your account</p>
+<!-- ✅ Yeh block name auth_content hona chahiye - content nahi! -->
+<div class="row justify-content-center mt-5">
+    <div class="col-md-5">
+        <div class="card shadow">
+            <div class="card-body p-4">
+                <h3 class="text-center mb-4 text-primary">Login</h3>
+                
+                <form method="POST" action="{{ url_for('auth.login') }}">
+                    <div class="mb-3">
+                        <label class="form-label">Username</label>
+                        <input type="text" name="username" class="form-control" required placeholder="Enter username">
                     </div>
                     
-                    <form method="POST" action="{{ url_for('auth.login') }}">
-                        <div class="mb-3">
-                            <label class="form-label">Email Address</label>
-                            <input type="email" name="email" class="form-control form-control-lg" 
-                                   placeholder="teacher@school.com" required>
-                        </div>
-                        <div class="mb-4">
-                            <label class="form-label">Password</label>
-                            <input type="password" name="password" class="form-control form-control-lg" 
-                                   placeholder="••••••••" required>
-                        </div>
-                        <button type="submit" class="btn btn-primary w-100 btn-lg">
-                            <i class="bi bi-box-arrow-in-right me-2"></i>Login
-                        </button>
-                    </form>
+                    <div class="mb-3">
+                        <label class="form-label">Password</label>
+                        <input type="password" name="password" class="form-control" required placeholder="Enter password">
+                    </div>
                     
-                    <hr class="my-4">
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" name="remember" class="form-check-input" id="remember">
+                        <label class="form-check-label" for="remember">Remember me</label>
+                    </div>
                     
-                    <p class="text-center mb-0">
-                        Don't have an account? 
-                        <a href="{{ url_for('auth.register') }}" class="text-decoration-none fw-bold">Register School</a>
-                    </p>
-                </div>
+                    <button type="submit" class="btn btn-primary w-100">Login</button>
+                </form>
+                
+                <p class="mt-3 text-center">
+                    New user? <a href="{{ url_for('auth.register') }}">Register here</a>
+                </p>
             </div>
         </div>
     </div>

@@ -1,105 +1,88 @@
 {% extends "base.html" %}
-
-{% block title %}Dashboard - Smart Attendance{% endblock %}
+{% block title %}Dashboard{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <h2 class="fw-bold mb-1">Dashboard</h2>
-        <p class="text-muted mb-0">Welcome back, {{ teacher_name }}</p>
-    </div>
-    <div class="text-end">
-        <span class="badge bg-primary fs-6">{{ today }}</span>
-    </div>
-</div>
+<!-- ✅ Yeh style add karo - text black dikhega -->
+<style>
+    .dashboard-content { color: #333 !important; }
+    .dashboard-content h2, .dashboard-content h4, .dashboard-content h5 { color: #333 !important; }
+    .dashboard-content p { color: #666 !important; }
+    .dashboard-content .card { background: #fff; border: 1px solid #ddd; }
+    .dashboard-content .btn { color: #fff !important; }
+    .dashboard-content .btn-info { color: #fff !important; }
+</style>
 
-<!-- Stats Cards -->
-<div class="row g-4 mb-4">
-    <div class="col-md-4">
-        <div class="stat-card">
-            <i class="bi bi-people fs-1 text-primary"></i>
-            <div class="stat-number">{{ total_students }}</div>
-            <div class="text-muted">Total Students</div>
+<div class="dashboard-content">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="fw-bold">Welcome, {{ current_user.username }}! 👋</h2>
+            <p>Manage your classes and attendance</p>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="stat-card">
-            <i class="bi bi-check-circle fs-1 text-success"></i>
-            <div class="stat-number text-success">{{ today_count }}</div>
-            <div class="text-muted">Present Today</div>
+
+    <div class="row mb-4">
+        <div class="col-md-3 col-sm-6 mb-3">
+            <a href="{{ url_for('dashboard.create_class') }}" class="btn btn-primary w-100 py-3">
+                <i class="bi bi-plus-circle fs-4"></i><br>
+                <small>Create Class</small>
+            </a>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-3">
+            <a href="{{ url_for('dashboard.register_student') }}" class="btn btn-success w-100 py-3">
+                <i class="bi bi-person-plus fs-4"></i><br>
+                <small>Register Student</small>
+            </a>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-3">
+            <a href="{{ url_for('dashboard.view_students') }}" class="btn btn-info w-100 py-3">
+                <i class="bi bi-people fs-4"></i><br>
+                <small>View Students</small>
+            </a>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-3">
+            <a href="{{ url_for('attendance.take_attendance') }}" class="btn btn-warning w-100 py-3">
+                <i class="bi bi-camera fs-4"></i><br>
+                <small>Take Attendance</small>
+            </a>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="stat-card">
-            <i class="bi bi-journal-bookmark fs-1 text-info"></i>
-            <div class="stat-number text-info">{{ classes|length }}</div>
-            <div class="text-muted">My Classes</div>
+
+    <div class="row">
+        <div class="col-12">
+            <h4 class="mb-3">Your Classes</h4>
         </div>
-    </div>
-</div>
-
-<!-- Classes -->
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h4 class="fw-bold">My Classes</h4>
-    <a href="{{ url_for('dashboard.create_class') }}" class="btn btn-primary">
-        <i class="bi bi-plus-lg me-1"></i>Create Class
-    </a>
-</div>
-
-{% if classes %}
-<div class="row g-4">
-    {% for class in classes %}
-    <div class="col-md-4">
-        <div class="card h-100">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-start mb-3">
-                    <div>
-                        <h5 class="card-title fw-bold mb-1">{{ class.class_name }}</h5>
-                        <span class="badge bg-secondary">{{ class.subject }}</span>
-                        <span class="badge bg-light text-dark">Sec {{ class.section }}</span>
-                    </div>
-                    <div class="dropdown">
-                        <button class="btn btn-link text-dark" data-bs-toggle="dropdown">
-                            <i class="bi bi-three-dots-vertical"></i>
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="{{ url_for('attendance.take_attendance', class_id=class.id) }}">
-                                <i class="bi bi-camera me-2"></i>Take Attendance
-                            </a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('dashboard.view_students', class_id=class.id) }}">
-                                <i class="bi bi-people me-2"></i>View Students
-                            </a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item text-danger" href="{{ url_for('dashboard.delete_class', id=class.id) }}" 
-                                   onclick="return confirm('Delete this class? All data will be lost!')">
-                                <i class="bi bi-trash me-2"></i>Delete
-                            </a></li>
-                        </ul>
+        
+        {% if classes %}
+            {% for class in classes %}
+            <div class="col-md-4 mb-3">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title fw-bold">{{ class.name }}</h5>
+                        <p class="card-text">{{ class.subject or 'No subject specified' }}</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small>Created: {{ class.created_at.strftime('%d %b %Y') if class.created_at else 'N/A' }}</small>
+                            <a href="{{ url_for('attendance.take_attendance') }}" class="btn btn-warning btn-sm">
+                                <i class="bi bi-camera me-1"></i>Attendance
+                            </a>
+                        </div>
                     </div>
                 </div>
-                
-                {% set student_count = class.students|selectattr('is_active', 'true')|list|length %}
-                <div class="d-flex justify-content-between text-muted small">
-                    <span><i class="bi bi-people me-1"></i>{{ student_count }} Students</span>
-                    <span><i class="bi bi-calendar me-1"></i>{{ class.academic_year }}</span>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body text-center py-5">
+                        <i class="bi bi-inbox fs-1 text-muted"></i>
+                        <h5 class="mt-3">No classes yet!</h5>
+                        <p>Create your first class to get started.</p>
+                        <a href="{{ url_for('dashboard.create_class') }}" class="btn btn-primary">
+                            <i class="bi bi-plus-circle me-2"></i>Create First Class
+                        </a>
+                    </div>
                 </div>
             </div>
-            <div class="card-footer bg-transparent border-0 pb-3">
-                <a href="{{ url_for('attendance.take_attendance', class_id=class.id) }}" class="btn btn-primary w-100">
-                    <i class="bi bi-camera me-2"></i>Take Attendance
-                </a>
-            </div>
-        </div>
+        {% endif %}
     </div>
-    {% endfor %}
 </div>
-{% else %}
-<div class="text-center py-5">
-    <i class="bi bi-inbox fs-1 text-muted"></i>
-    <p class="text-muted mt-2">No classes yet. Create your first class!</p>
-    <a href="{{ url_for('dashboard.create_class') }}" class="btn btn-primary">
-        <i class="bi bi-plus-lg me-1"></i>Create Class
-    </a>
-</div>
-{% endif %}
 {% endblock %}

@@ -4,24 +4,33 @@ from dotenv import load_dotenv
 basedir = os.path.abspath(os.path.dirname(__file__))
 load_dotenv(os.path.join(basedir, '..', '.env'))
 
+
 class Config:
-    SECRET_KEY = os.environ.get('SECRET_KEY') or 'dev-secret-key-change-in-production'
+    SECRET_KEY = os.environ.get('SECRET_KEY') or 'dev-secret-key'
     
-    # Database
+    # ✅ SQLite for local, PostgreSQL for production
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
         'sqlite:///' + os.path.join(basedir, '..', 'attendance.db')
     
-    # Fix for Render/Railway PostgreSQL URLs
+    # ✅ Render/Railway fix - "postgres://" → "postgresql://"
     if SQLALCHEMY_DATABASE_URI and SQLALCHEMY_DATABASE_URI.startswith("postgres://"):
         SQLALCHEMY_DATABASE_URI = SQLALCHEMY_DATABASE_URI.replace("postgres://", "postgresql://", 1)
     
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    
-    # Face recognition
-    FACE_CONFIDENCE_THRESHOLD = 70
-    
-    # Upload settings
-    MAX_CONTENT_LENGTH = 16 * 1024 * 1024
-    
-    # Dataset path
-    DATASET_PATH = os.environ.get('DATASET_PATH') or os.path.join(basedir, '..', 'dataset')
+    UPLOAD_FOLDER = os.environ.get('UPLOAD_FOLDER') or os.path.join(basedir, '..', 'dataset')
+    MAX_CONTENT_LENGTH = int(os.environ.get('MAX_CONTENT_LENGTH') or 16 * 1024 * 1024)
+
+
+class DevelopmentConfig(Config):
+    DEBUG = True
+
+
+class ProductionConfig(Config):
+    DEBUG = False
+
+
+config = {
+    'development': DevelopmentConfig,
+    'production': ProductionConfig,
+    'default': DevelopmentConfig
+}

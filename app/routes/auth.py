@@ -1,53 +1,47 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request, session
+from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_user, logout_user, login_required, current_user
-from app.models import db, Teacher, School
+from app import db
+from app.models import Teacher
 
 bp = Blueprint('auth', __name__)
 
-@bp.route('/')
+
+@bp.route('/home')
 def home():
-    return render_template('home.html')
+    if current_user.is_authenticated:
+        return redirect(url_for('dashboard.index'))
+    return redirect(url_for('auth.login'))
+
 
 @bp.route('/register', methods=['GET', 'POST'])
 def register():
+    if current_user.is_authenticated:
+        return redirect(url_for('dashboard.index'))
+    
     if request.method == 'POST':
-        username = request.form['username']
-        email = request.form['email']
-        password = request.form['password']
-        confirm_password = request.form['confirm_password']
-        school_name = request.form.get('school_name')
+        username = request.form.get('username')
+        email = request.form.get('email')
+        password = request.form.get('password')
+        confirm_password = request.form.get('confirm_password')
         
-        # Validation
+        if not username or not email or not password:
+            flash('All fields are required!', 'danger')
+            return redirect(url_for('auth.register'))
+        
         if password != confirm_password:
             flash('Passwords do not match!', 'danger')
-            return render_template('auth/register.html')
+            return redirect(url_for('auth.register'))
         
-        if len(password) < 6:
-            flash('Password must be at least 6 characters!', 'danger')
-            return render_template('auth/register.html')
+        if Teacher.query.filter_by(username=username).first():
+            flash('Username already exists!', 'danger')
+            return redirect(url_for('auth.register'))
         
         if Teacher.query.filter_by(email=email).first():
             flash('Email already registered!', 'danger')
-            return render_template('auth/register.html')
+            return redirect(url_for('auth.register'))
         
-        # Create school if provided
-        school = None
-        if school_name:
-            school = School(school_name=school_name, contact_email=email)
-            db.session.add(school)
-            db.session.flush()
-        
-        # Create teacher
-        teacher = Teacher(
-            username=username,
-            email=email,
-            full_name=username,
-            school_id=school.id if school else None,
-            is_admin=bool(school),
-            is_super_admin=False
-        )
+        teacher = Teacher(username=username, email=email)
         teacher.set_password(password)
-        
         db.session.add(teacher)
         db.session.commit()
         
@@ -56,37 +50,35 @@ def register():
     
     return render_template('auth/register.html')
 
+
 @bp.route('/login', methods=['GET', 'POST'])
 def login():
+    if current_user.is_authenticated:
+        return redirect(url_for('dashboard.index'))
+    
     if request.method == 'POST':
-        email = request.form.get('email')
+        username = request.form.get('username')
         password = request.form.get('password')
         
-        teacher = Teacher.query.filter_by(email=email).first()
+        if not username or not password:
+            flash('Please enter username and password!', 'danger')
+            return redirect(url_for('auth.login'))
+        
+        teacher = Teacher.query.filter_by(username=username).first()
         
         if teacher and teacher.check_password(password):
-            if not teacher.is_active:
-                flash('Account is deactivated! Contact admin.', 'danger')
-                return render_template('auth/login.html')
-            
             login_user(teacher)
-            session['teacher_name'] = teacher.full_name or teacher.username
-            session['school_id'] = teacher.school_id
-            session['is_admin'] = teacher.is_admin
-            session['is_super_admin'] = teacher.is_super_admin
-            
             flash(f'Welcome back, {teacher.username}!', 'success')
-            next_page = request.args.get('next')
-            return redirect(next_page or url_for('dashboard.index'))
+            return redirect(url_for('dashboard.index'))
         
-        flash('Invalid email or password!', 'danger')
+        flash('Invalid username or password!', 'danger')
     
     return render_template('auth/login.html')
+
 
 @bp.route('/logout')
 @login_required
 def logout():
     logout_user()
-    session.clear()
     flash('You have been logged out.', 'info')
-    return redirect(url_for('auth.home'))
+    return redirect(url_for('auth.login'))

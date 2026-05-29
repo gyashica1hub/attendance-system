@@ -1,71 +1,76 @@
 {% extends "base.html" %}
-
-{% block title %}{{ class_info.display_name }} - Students{% endblock %}
+{% block title %}View Students{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <h4 class="fw-bold mb-1">{{ class_info.display_name }}</h4>
-        <p class="text-muted mb-0">Manage students and register faces</p>
-    </div>
-    <a href="{{ url_for('dashboard.register_student') }}" class="btn btn-primary">
-        <i class="bi bi-person-plus me-1"></i>Add Student
-    </a>
-</div>
+<div class="row">
+    <div class="col-12">
+        <h2>Students</h2>
+        <!-- Search Box -->
+            <div class="mb-3">
+                <input type="text" id="searchStudent" class="form-control" placeholder="Search by name or roll number..." onkeyup="searchStudents()">
+            </div>
 
-<div class="card">
-    <div class="table-responsive">
-        <table class="table table-hover mb-0">
-            <thead class="table-light">
+            <script>
+            function searchStudents() {
+                const input = document.getElementById('searchStudent').value.toLowerCase();
+                const rows = document.querySelectorAll('tbody tr');
+                
+                rows.forEach(row => {
+                    const text = row.textContent.toLowerCase();
+                    row.style.display = text.includes(input) ? '' : 'none';
+                });
+            }
+</script>
+        <!-- Class Filter -->
+        <form method="get" class="mb-4">
+            <div class="row">
+                <div class="col-md-4">
+                    <select name="class_id" class="form-select" onchange="this.form.submit()">
+                        <option value="">All Classes</option>
+                        {% for class in classes %}
+                        <option value="{{ class.id }}" {% if selected_class == class.id %}selected{% endif %}>
+                            {{ class.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </form>
+        
+        {% if class_info %}
+        <h4 class="text-primary">{{ class_info.name }}</h4>
+        {% endif %}
+        
+        {% if students %}
+        <table class="table table-striped">
+            <thead>
                 <tr>
-                    <th>Roll No</th>
+                    <th>Roll Number</th>
                     <th>Name</th>
-                    <th>Parent Contact</th>
-                    <th>Face Status</th>
-                    <th>Actions</th>
+                    <th>Email</th>
+                    <th>Class</th>
                 </tr>
             </thead>
             <tbody>
                 {% for student in students %}
                 <tr>
-                    <td class="fw-bold">{{ student.roll_no }}</td>
-                    <td>{{ student.student_name }}</td>
-                    <td>
-                        {% if student.parent_phone %}
-                        <small><i class="bi bi-telephone me-1"></i>{{ student.parent_phone }}</small>
-                        {% else %}
-                        <span class="text-muted">-</span>
-                        {% endif %}
-                    </td>
-                    <td>
-                        {% if student.face_registered %}
-                        <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Registered</span>
-                        {% else %}
-                        <span class="badge bg-warning text-dark"><i class="bi bi-x-circle me-1"></i>Pending</span>
-                        {% endif %}
-                    </td>
-                    <td>
-                        <a href="{{ url_for('attendance.register_face_page', student_id=student.id) }}" 
-                           class="btn btn-sm btn-outline-primary">
-                            <i class="bi bi-camera"></i> Register Face
-                        </a>
-                        <a href="{{ url_for('dashboard.delete_student', id=student.id) }}" 
-                           class="btn btn-sm btn-outline-danger"
-                           onclick="return confirm('Delete this student?')">
-                            <i class="bi bi-trash"></i>
-                        </a>
-                    </td>
-                </tr>
-                {% else %}
-                <tr>
-                    <td colspan="5" class="text-center py-4 text-muted">
-                        <i class="bi bi-inbox fs-1"></i>
-                        <p class="mt-2">No students registered yet</p>
-                    </td>
+                    <td>{{ student.roll_number }}</td>
+                    <td>{{ student.name }}</td>
+                    <td>{{ student.email or 'N/A' }}</td>
+                    <td>{{ student.class_.name }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
+        {% else %}
+        <div class="alert alert-info">
+            {% if selected_class %}
+                No students found in this class.
+            {% else %}
+                Select a class to view students.
+            {% endif %}
+        </div>
+        {% endif %}
     </div>
 </div>
 {% endblock %}

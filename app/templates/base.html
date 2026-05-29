@@ -11,9 +11,13 @@
             --primary: #4f46e5;
             --secondary: #7c3aed;
         }
+        
+        /* Light Mode (Default) */
         body {
             background: #f8fafc;
             font-family: 'Segoe UI', sans-serif;
+            color: #333;
+            transition: all 0.3s ease;
         }
         .navbar {
             background: linear-gradient(135deg, var(--primary), var(--secondary));
@@ -24,6 +28,7 @@
             border-radius: 15px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.08);
             transition: transform 0.2s;
+            background: white;
         }
         .card:hover {
             transform: translateY(-3px);
@@ -52,12 +57,122 @@
             background: white;
             box-shadow: 2px 0 10px rgba(0,0,0,0.05);
         }
+        .sidebar .list-group-item {
+            color: #333;
+            border: none;
+        }
+        .sidebar .list-group-item:hover {
+            background: #f0f0f0;
+            color: var(--primary);
+        }
         .flash-messages {
             position: fixed;
             top: 80px;
             right: 20px;
             z-index: 1050;
             min-width: 300px;
+        }
+        select.form-select {
+            color: #333 !important;
+            background-color: #fff !important;
+        }
+        select.form-select option {
+            color: #333 !important;
+            background-color: #fff !important;
+        }
+
+        /* ✅ DARK MODE STYLES */
+        body.dark-mode {
+            background: #0f172a !important;
+            color: #e2e8f0 !important;
+        }
+        body.dark-mode .card {
+            background: #1e293b !important;
+            color: #e2e8f0 !important;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        body.dark-mode .stat-card {
+            background: #1e293b !important;
+            color: #e2e8f0 !important;
+        }
+        body.dark-mode .stat-number {
+            color: #818cf8 !important;
+        }
+        body.dark-mode .sidebar {
+            background: #1e293b !important;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.3);
+        }
+        body.dark-mode .sidebar .list-group-item {
+            color: #e2e8f0 !important;
+            background: transparent !important;
+        }
+        body.dark-mode .sidebar .list-group-item:hover {
+            background: #334155 !important;
+            color: #818cf8 !important;
+        }
+        body.dark-mode .table {
+            color: #e2e8f0 !important;
+        }
+        body.dark-mode .table-striped > tbody > tr:nth-of-type(odd) > * {
+            background: #1e293b !important;
+            color: #e2e8f0 !important;
+        }
+        body.dark-mode .form-control,
+        body.dark-mode .form-select {
+            background: #334155 !important;
+            color: #e2e8f0 !important;
+            border-color: #475569 !important;
+        }
+        body.dark-mode .form-control::placeholder {
+            color: #94a3b8 !important;
+        }
+        body.dark-mode .text-muted {
+            color: #94a3b8 !important;
+        }
+        body.dark-mode .alert-info {
+            background: #1e3a5f !important;
+            color: #93c5fd !important;
+            border-color: #3b82f6 !important;
+        }
+        body.dark-mode .alert-success {
+            background: #1e3f2e !important;
+            color: #86efac !important;
+            border-color: #22c55e !important;
+        }
+        body.dark-mode .alert-danger {
+            background: #3f1e1e !important;
+            color: #fca5a5 !important;
+            border-color: #ef4444 !important;
+        }
+        body.dark-mode .alert-warning {
+            background: #3f3a1e !important;
+            color: #fde047 !important;
+            border-color: #eab308 !important;
+        }
+        body.dark-mode .border-bottom {
+            border-color: #334155 !important;
+        }
+        body.dark-mode .progress {
+            background: #334155 !important;
+        }
+        
+        /* Dark Mode Toggle Button */
+        #darkModeToggle {
+            background: transparent;
+            border: 2px solid rgba(255,255,255,0.5);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1.2rem;
+        }
+        #darkModeToggle:hover {
+            background: rgba(255,255,255,0.2);
+            border-color: white;
         }
     </style>
     {% block extra_css %}{% endblock %}
@@ -69,14 +184,23 @@
             <a class="navbar-brand fw-bold" href="{{ url_for('dashboard.index') if current_user.is_authenticated else url_for('auth.home') }}">
                 <i class="bi bi-camera-fill me-2"></i>Smart Attendance
             </a>
-            {% if current_user.is_authenticated %}
-            <div class="d-flex align-items-center text-white">
-                <span class="me-3"><i class="bi bi-person-circle me-1"></i>{{ session.get('teacher_name', 'Teacher') }}</span>
+            <div class="d-flex align-items-center">
+                {% if current_user.is_authenticated %}
+                <!-- ✅ DARK MODE TOGGLE BUTTON -->
+                <button id="darkModeToggle" onclick="toggleDarkMode()" title="Toggle Dark Mode" class="me-3">
+                    🌙
+                </button>
+                <span class="text-white me-3"><i class="bi bi-person-circle me-1"></i>{{ session.get('teacher_name', 'Teacher') }}</span>
                 <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-light btn-sm">
                     <i class="bi bi-box-arrow-right"></i> Logout
                 </a>
+                {% else %}
+                <!-- ✅ DARK MODE TOGGLE BUTTON (logged out) -->
+                <button id="darkModeToggle" onclick="toggleDarkMode()" title="Toggle Dark Mode">
+                    🌙
+                </button>
+                {% endif %}
             </div>
-            {% endif %}
         </div>
     </nav>
 
@@ -128,10 +252,39 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        // ✅ DARK MODE FUNCTIONS
+        function toggleDarkMode() {
+            const body = document.body;
+            const toggle = document.getElementById('darkModeToggle');
+            
+            body.classList.toggle('dark-mode');
+            
+            // Save preference
+            const isDark = body.classList.contains('dark-mode');
+            localStorage.setItem('darkMode', isDark);
+            
+            // Update icon
+            toggle.innerHTML = isDark ? '☀️' : '🌙';
+            toggle.title = isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode';
+        }
+
+        // Load saved preference on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const isDark = localStorage.getItem('darkMode') === 'true';
+            const toggle = document.getElementById('darkModeToggle');
+            
+            if (isDark) {
+                document.body.classList.add('dark-mode');
+                toggle.innerHTML = '☀️';
+                toggle.title = 'Switch to Light Mode';
+            }
+        });
+
         // Auto-dismiss flash messages
         setTimeout(() => {
             document.querySelectorAll('.alert').forEach(alert => {
-                bootstrap.Alert.getInstance(alert)?.close();
+                const bsAlert = bootstrap.Alert.getInstance(alert);
+                if (bsAlert) bsAlert.close();
             });
         }, 5000);
     </script>

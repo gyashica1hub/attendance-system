@@ -1,6 +1,8 @@
 {% extends "base.html" %}
 
-{% block title %}Take Attendance - {{ class_info.display_name }}{% endblock %}
+{% block title %}
+    {% if class_info %}Take Attendance - {{ class_info.name }}{% else %}Take Attendance{% endif %}
+{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -25,17 +27,39 @@
     .status-badge {
         font-size: 0.75rem;
     }
+    .present { background: #28a745 !important; }
+    .pending { background: #6c757d !important; }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="row">
+    <!-- Class Selection -->
+    {% if not class_info %}
+    <div class="col-12 mb-4">
+        <h4>Select Class</h4>
+        <div class="row">
+            {% for class in classes %}
+            <div class="col-md-3 mb-3">
+                <a href="{{ url_for('attendance.take_attendance_class', class_id=class.id) }}" 
+                   class="btn btn-outline-primary w-100 py-3">
+                    {{ class.name }}
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% else %}
+    
+    <!-- Camera + Attendance -->
     <div class="col-md-8">
         <div class="card p-4">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <div>
-                    <h4 class="fw-bold mb-1"><i class="bi bi-camera me-2"></i>Take Attendance</h4>
-                    <p class="text-muted mb-0">{{ class_info.display_name }} | {{ today }}</p>
+                    <h4 class="fw-bold mb-1">
+                        <i class="bi bi-camera me-2"></i>Take Attendance
+                    </h4>
+                    <p class="text-muted mb-0">{{ class_info.name }} | {{ today }}</p>
                 </div>
                 <span class="badge bg-primary" id="status-badge">Ready</span>
             </div>
@@ -58,6 +82,7 @@
         </div>
     </div>
     
+    <!-- Student List -->
     <div class="col-md-4">
         <div class="card p-3">
             <h6 class="fw-bold mb-3">
@@ -70,8 +95,8 @@
                 <div class="d-flex justify-content-between align-items-center p-2 border-bottom" 
                      id="student-{{ student.id }}">
                     <div>
-                        <div class="fw-bold">{{ student.student_name }}</div>
-                        <small class="text-muted">Roll: {{ student.roll_no }}</small>
+                        <div class="fw-bold">{{ student.name }}</div>
+                        <small class="text-muted">Roll: {{ student.roll_number }}</small>
                     </div>
                     <div>
                         {% if student.id in already_marked %}
@@ -79,7 +104,7 @@
                         {% else %}
                         <span class="badge bg-secondary status-badge" id="badge-{{ student.id }}">Pending</span>
                         <button class="btn btn-sm btn-outline-success" 
-                                onclick="markManual({{ student.id }}, '{{ student.student_name }}')">
+                                onclick="markManual({{ student.id }}, '{{ student.name }}')">
                             <i class="bi bi-check"></i>
                         </button>
                         {% endif %}
@@ -89,6 +114,7 @@
             </div>
         </div>
     </div>
+    {% endif %}
 </div>
 {% endblock %}
 
@@ -102,7 +128,6 @@ let statusBadge = document.getElementById('status-badge');
 let scanResult = document.getElementById('scan-result');
 let stream = null;
 
-// Start camera
 async function startCamera() {
     try {
         stream = await navigator.mediaDevices.getUserMedia({ 
@@ -119,7 +144,6 @@ async function startCamera() {
     }
 }
 
-// Stop camera
 function stopCamera() {
     if (stream) {
         stream.getTracks().forEach(track => track.stop());
@@ -132,80 +156,15 @@ function stopCamera() {
     statusBadge.textContent = 'Ready';
 }
 
-// Capture and scan
-async function captureAndScan() {
-    if (!stream) {
-        await startCamera();
-        return;
-    }
-    
-    // Capture frame
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    canvas.getContext('2d').drawImage(video, 0, 0);
-    
-    const imageData = canvas.toDataURL('image/jpeg', 0.8);
-    
-    statusBadge.className = 'badge bg-warning text-dark';
-    statusBadge.textContent = 'Scanning...';
-    btnScan.disabled = true;
-    
-    try {
-        const response = await fetch('/attendance/scan', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                image: imageData,
-                class_id: {{ class_id }}
-            })
-        });
-        
-        const data = await response.json();
-        
-        if (data.status === 'success') {
-            statusBadge.className = 'badge bg-success';
-            scanResult.innerHTML = `<div class="alert alert-success">${data.message}</div>`;
-            
-            // Update student badges
-            data.results.forEach(r => {
-                if (r.status === 'marked') {
-                    const badge = document.getElementById(`badge-${getStudentIdByName(r.name)}`);
-                    if (badge) {
-                        badge.className = 'badge bg-success status-badge';
-                        badge.textContent = 'Present';
-                    }
-                }
-            });
-        } else if (data.status === 'already_marked') {
-            statusBadge.className = 'badge bg-info';
-            scanResult.innerHTML = `<div class="alert alert-info">${data.message}</div>`;
-        } else {
-            statusBadge.className = 'badge bg-danger';
-            scanResult.innerHTML = `<div class="alert alert-danger">${data.message}</div>`;
-        }
-    } catch (err) {
-        statusBadge.className = 'badge bg-danger';
-        scanResult.innerHTML = `<div class="alert alert-danger">Error: ${err.message}</div>`;
-    }
-    
-    btnScan.disabled = false;
-    statusBadge.textContent = 'Ready';
-}
-
-// Helper to find student ID by name (simplified)
-function getStudentIdByName(name) {
-    // This is a simplified version - in production, map names to IDs
-    return null;
-}
-
-// Mark manual attendance
+{% if class_info %}
+// Manual attendance marking
 async function markManual(studentId, studentName) {
     const formData = new FormData();
     formData.append('student_id', studentId);
     formData.append('class_id', {{ class_id }});
     
     try {
-        const response = await fetch('/attendance/mark_manual', {
+        const response = await fetch('/attendance/mark-manual', {
             method: 'POST',
             body: formData
         });
@@ -216,4 +175,49 @@ async function markManual(studentId, studentName) {
             const badge = document.getElementById(`badge-${studentId}`);
             if (badge) {
                 badge.className = 'badge bg-success status-badge';
-                badge.textContent = 'Present Main aapko complete project files deta hoon - GitHub repo ke saath saari files ek saath!
+                badge.textContent = 'Present';
+            }
+            // Remove the button
+            const btn = document.querySelector(`#student-${studentId} button`);
+            if (btn) btn.remove();
+            
+            scanResult.innerHTML = `<div class="alert alert-success">${studentName} marked present!</div>`;
+        } else if (data.status === 'already_marked') {
+            scanResult.innerHTML = `<div class="alert alert-info">${data.message}</div>`;
+        } else {
+            scanResult.innerHTML = `<div class="alert alert-danger">${data.message}</div>`;
+        }
+    } catch (err) {
+        scanResult.innerHTML = `<div class="alert alert-danger">Error: ${err.message}</div>`;
+    }
+}
+
+btnScan.addEventListener('click', async function() {
+    if (!stream) {
+        await startCamera();
+        return;
+    }
+    
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    canvas.getContext('2d').drawImage(video, 0, 0);
+    
+    const imageData = canvas.toDataURL('image/jpeg', 0.8);
+    
+    statusBadge.className = 'badge bg-warning text-dark';
+    statusBadge.textContent = 'Scanning...';
+    btnScan.disabled = true;
+    
+    // TODO: Face recognition backend
+    setTimeout(() => {
+        statusBadge.className = 'badge bg-primary';
+        statusBadge.textContent = 'Ready';
+        btnScan.disabled = false;
+        scanResult.innerHTML = '<div class="alert alert-info">Face recognition coming soon! Use manual buttons for now.</div>';
+    }, 2000);
+});
+
+btnStop.addEventListener('click', stopCamera);
+{% endif %}
+</script>
+{% endblock %}
