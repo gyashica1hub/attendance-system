@@ -3,14 +3,11 @@ Flask-SQLAlchemy==3.1.1
 Flask-Login==0.6.3
 Flask-WTF==1.2.1
 Flask-Migrate==4.0.5
-Flask-Mail==0.9.1  # ✅ Email
 Werkzeug==3.0.1
 python-dotenv==1.0.0
-email-validator==2.1.0
 gunicorn==21.2.0
 openpyxl==3.1.2
 numpy
 opencv-python
 Pillow
-qrcode==7.4.2  # ✅ QR Code
 psycopg2-binary==2.9.9
