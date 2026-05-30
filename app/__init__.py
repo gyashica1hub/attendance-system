@@ -2,15 +2,16 @@ from flask import Flask, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_migrate import Migrate
-from flask_wtf.csrf import CSRFProtect  # ✅ Add this
 
 db = SQLAlchemy()
 login_manager = LoginManager()
 migrate = Migrate()
-csrf = CSRFProtect()  # ✅ Add this
 
 def create_app(config_name='default'):
     app = Flask(__name__)
+    
+    # ✅ CSRF temporarily disable
+    app.config['WTF_CSRF_ENABLED'] = False
     
     # Config load karo
     from app.config import config
@@ -20,16 +21,9 @@ def create_app(config_name='default'):
     db.init_app(app)
     login_manager.init_app(app)
     migrate.init_app(app, db)
-    csrf.init_app(app)  # ✅ Add this
-    
-    # ✅ CSRF exempt for API routes (optional)
-    from app.routes.attendance import bp as attendance_bp
-    csrf.exempt(attendance_bp)  # ✅ Add this - attendance routes CSRF exempt
     
     login_manager.login_view = 'auth.login'
     login_manager.login_message_category = 'info'
-    
-    # ... rest same
     
     # User loader
     @login_manager.user_loader
@@ -66,7 +60,7 @@ def create_app(config_name='default'):
     os.makedirs(os.path.join(app.root_path, 'static', 'uploads', 'students'), exist_ok=True)
     os.makedirs(os.path.join(app.root_path, 'static', 'img'), exist_ok=True)
     
-    # ✅ Create tables - uncommented!
+    # Create tables
     with app.app_context():
         db.create_all()
     
