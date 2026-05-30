@@ -33,8 +33,10 @@
 {% endblock %}
 
 {% block content %}
+<!-- ✅ CSRF Token in meta tag -->
+<meta name="csrf-token" content="{{ csrf_token() }}">
+
 <div class="row">
-    <!-- Class Selection -->
     {% if not class_info %}
     <div class="col-12 mb-4">
         <h4>Select Class</h4>
@@ -51,7 +53,6 @@
     </div>
     {% else %}
     
-    <!-- Camera + Attendance -->
     <div class="col-md-8">
         <div class="card p-4">
             <div class="d-flex justify-content-between align-items-center mb-3">
@@ -82,7 +83,6 @@
         </div>
     </div>
     
-    <!-- Student List -->
     <div class="col-md-4">
         <div class="card p-3">
             <h6 class="fw-bold mb-3">
@@ -120,23 +120,8 @@
 
 {% block extra_js %}
 <script>
-// ✅ CSRF Token from cookie (Flask-WTF default)
-function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
-            }
-        }
-    }
-    return cookieValue;
-}
-
-const csrfToken = getCookie('csrf_token');
+// ✅ CSRF Token from meta tag
+const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
 
 let video = document.getElementById('video');
 let canvas = document.getElementById('canvas');
@@ -175,7 +160,6 @@ function stopCamera() {
 }
 
 {% if class_info %}
-// ✅ Manual attendance marking with CSRF token from cookie
 async function markManual(studentId, studentName) {
     const formData = new URLSearchParams();
     formData.append('student_id', studentId);

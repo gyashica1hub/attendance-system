@@ -95,19 +95,17 @@ def take_attendance_class(class_id):
 @bp.route('/mark-manual', methods=['POST'])
 @login_required
 def mark_manual():
-    # ✅ DEBUG logs
-    print(f"DEBUG: request.form = {dict(request.form)}")
-    print(f"DEBUG: request.headers = {dict(request.headers)}")
-    
-    student_id = request.form.get('student_id')
-    class_id = request.form.get('class_id')
-    
-    print(f"DEBUG: student_id={student_id}, class_id={class_id}")
+    # ✅ FIX: String ko Integer mein convert karo
+    try:
+        student_id = int(request.form.get('student_id'))
+        class_id = int(request.form.get('class_id'))
+    except (ValueError, TypeError):
+        return jsonify({'status': 'error', 'message': 'Invalid student or class ID'}), 400
     
     if not student_id or not class_id:
         return jsonify({
             'status': 'error', 
-            'message': f'Missing data: student_id={student_id}, class_id={class_id}'
+            'message': 'Missing data'
         }), 400
     
     today = date.today()
