@@ -12,9 +12,14 @@ class Config:
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
         'sqlite:///' + os.path.join(basedir, '..', 'instance', 'attendance.db')
     
-    # PostgreSQL fix
-    if SQLALCHEMY_DATABASE_URI and SQLALCHEMY_DATABASE_URI.startswith("postgres://"):
-        SQLALCHEMY_DATABASE_URI = SQLALCHEMY_DATABASE_URI.replace("postgres://", "postgresql://", 1)
+    # ✅ PostgreSQL URL fixes
+    if SQLALCHEMY_DATABASE_URI:
+        # Render ka old URL format fix
+        if SQLALCHEMY_DATABASE_URI.startswith("postgres://"):
+            SQLALCHEMY_DATABASE_URI = SQLALCHEMY_DATABASE_URI.replace("postgres://", "postgresql://", 1)
+        # ✅ psycopg v3 ke liye driver prefix add
+        if SQLALCHEMY_DATABASE_URI.startswith("postgresql://"):
+            SQLALCHEMY_DATABASE_URI = SQLALCHEMY_DATABASE_URI.replace("postgresql://", "postgresql+psycopg://", 1)
     
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     UPLOAD_FOLDER = os.environ.get('UPLOAD_FOLDER') or os.path.join(basedir, '..', 'dataset')
@@ -31,5 +36,4 @@ config = {
     'development': DevelopmentConfig,
     'production': ProductionConfig,
     'default': ProductionConfig
-
 }
