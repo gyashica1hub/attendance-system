@@ -120,9 +120,6 @@
 
 {% block extra_js %}
 <script>
-// ✅ CSRF Token from meta tag
-const csrfToken = "{{ csrf_token() }}";
-
 let video = document.getElementById('video');
 let canvas = document.getElementById('canvas');
 let btnScan = document.getElementById('btn-scan');
@@ -160,9 +157,9 @@ function stopCamera() {
 }
 
 {% if class_info %}
-// ✅ Manual attendance marking with CSRF token
+// Manual attendance marking - NO CSRF token needed (disabled in app)
 async function markManual(studentId, studentName) {
-    const formData = new FormData();
+    const formData = new URLSearchParams();
     formData.append('student_id', studentId);
     formData.append('class_id', {{ class_id }});
     
@@ -170,7 +167,7 @@ async function markManual(studentId, studentName) {
         const response = await fetch('/attendance/mark-manual', {
             method: 'POST',
             headers: {
-                'X-CSRFToken': csrfToken  // ✅ CSRF Token added
+                'Content-Type': 'application/x-www-form-urlencoded'
             },
             body: formData
         });
