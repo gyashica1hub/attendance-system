@@ -102,11 +102,22 @@ def take_attendance_class(class_id):
 @bp.route('/mark-manual', methods=['POST'])
 @login_required
 def mark_manual():
+    # ✅ DEBUG: Print what we received
+    print(f"DEBUG: Form data = {request.form}")
+    print(f"DEBUG: JSON data = {request.get_json()}")
+    print(f"DEBUG: Headers = {request.headers.get('Content-Type')}")
+    
     student_id = request.form.get('student_id')
     class_id = request.form.get('class_id')
     
+    # ✅ DEBUG: Print extracted values
+    print(f"DEBUG: student_id={student_id}, class_id={class_id}")
+    
     if not student_id or not class_id:
-        return jsonify({'status': 'error', 'message': 'Missing data'})
+        return jsonify({
+            'status': 'error', 
+            'message': f'Missing data: student_id={student_id}, class_id={class_id}'
+        }), 400
     
     # Check if already marked today
     today = date.today()
