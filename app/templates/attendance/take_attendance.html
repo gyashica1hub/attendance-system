@@ -120,6 +120,24 @@
 
 {% block extra_js %}
 <script>
+// ✅ CSRF Token from cookie (Flask-WTF default)
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+const csrfToken = getCookie('csrf_token');
+
 let video = document.getElementById('video');
 let canvas = document.getElementById('canvas');
 let btnScan = document.getElementById('btn-scan');
@@ -157,7 +175,7 @@ function stopCamera() {
 }
 
 {% if class_info %}
-// Manual attendance marking - NO CSRF token needed (disabled in app)
+// ✅ Manual attendance marking with CSRF token from cookie
 async function markManual(studentId, studentName) {
     const formData = new URLSearchParams();
     formData.append('student_id', studentId);
@@ -167,7 +185,8 @@ async function markManual(studentId, studentName) {
         const response = await fetch('/attendance/mark-manual', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': csrfToken
             },
             body: formData
         });
@@ -180,7 +199,6 @@ async function markManual(studentId, studentName) {
                 badge.className = 'badge bg-success status-badge';
                 badge.textContent = 'Present';
             }
-            // Remove the button
             const btn = document.querySelector(`#student-${studentId} button`);
             if (btn) btn.remove();
             
@@ -205,13 +223,10 @@ btnScan.addEventListener('click', async function() {
     canvas.height = video.videoHeight;
     canvas.getContext('2d').drawImage(video, 0, 0);
     
-    const imageData = canvas.toDataURL('image/jpeg', 0.8);
-    
     statusBadge.className = 'badge bg-warning text-dark';
     statusBadge.textContent = 'Scanning...';
     btnScan.disabled = true;
     
-    // TODO: Face recognition backend
     setTimeout(() => {
         statusBadge.className = 'badge bg-primary';
         statusBadge.textContent = 'Ready';

@@ -2,25 +2,31 @@ from flask import Flask, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_migrate import Migrate
+from flask_wtf.csrf import CSRFProtect
 
 db = SQLAlchemy()
 login_manager = LoginManager()
 migrate = Migrate()
+csrf = CSRFProtect()
 
 def create_app(config_name='default'):
     app = Flask(__name__)
-    
-    # ✅ CSRF temporarily disable
-    app.config['WTF_CSRF_ENABLED'] = False
     
     # Config load karo
     from app.config import config
     app.config.from_object(config[config_name])
     
+    # ✅ CSRF Enable karo
+    csrf.init_app(app)
+    
     # Extensions init
     db.init_app(app)
     login_manager.init_app(app)
     migrate.init_app(app, db)
+    
+    # ✅ CSRF exempt for attendance API only
+    from app.routes.attendance import bp as attendance_bp
+    csrf.exempt(attendance_bp)
     
     login_manager.login_view = 'auth.login'
     login_manager.login_message_category = 'info'
@@ -34,7 +40,6 @@ def create_app(config_name='default'):
     # Blueprints register
     from app.routes.auth import bp as auth_bp
     from app.routes.dashboard import bp as dashboard_bp
-    from app.routes.attendance import bp as attendance_bp
     from app.routes.reports import bp as reports_bp
     from app.routes.api import bp as api_bp
     from app.routes.admin import bp as admin_bp

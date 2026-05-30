@@ -9,7 +9,6 @@ bp = Blueprint('attendance', __name__)
 import qrcode
 import io
 import base64
-from datetime import date
 
 
 @bp.route('/qr/<int:class_id>')
@@ -21,7 +20,6 @@ def generate_qr(class_id):
         flash('Unauthorized!', 'danger')
         return redirect(url_for('dashboard.index'))
     
-    # Generate QR code with class info
     qr_data = f"ATTENDANCE:{class_id}:{date.today().isoformat()}"
     
     qr = qrcode.QRCode(version=1, box_size=10, border=5)
@@ -30,7 +28,6 @@ def generate_qr(class_id):
     
     img = qr.make_image(fill_color="black", back_color="white")
     
-    # Convert to base64
     buffer = io.BytesIO()
     img.save(buffer, format='PNG')
     qr_base64 = base64.b64encode(buffer.getvalue()).decode()
@@ -53,12 +50,10 @@ def scan_qr():
         if qr_date != date.today():
             return jsonify({'status': 'error', 'message': 'QR code expired!'})
         
-        # Mark attendance (student must be logged in)
-        # Implementation depends on student login system
-        
         return jsonify({'status': 'success', 'message': 'Attendance marked!'})
     except:
         return jsonify({'status': 'error', 'message': 'Invalid QR code!'})
+
 
 @bp.route('/take')
 @login_required
@@ -72,14 +67,12 @@ def take_attendance():
 def take_attendance_class(class_id):
     class_info = Class.query.get_or_404(class_id)
     
-    # Sirf apni classes
     if class_info.teacher_id != current_user.id:
         flash('Unauthorized!', 'danger')
         return redirect(url_for('dashboard.index'))
     
     students = Student.query.filter_by(class_id=class_id).all()
     
-    # Aaj ki attendance check karo
     today = date.today()
     already_marked = {}
     for student in students:
@@ -102,15 +95,13 @@ def take_attendance_class(class_id):
 @bp.route('/mark-manual', methods=['POST'])
 @login_required
 def mark_manual():
-    # ✅ DEBUG: Print what we received
-    print(f"DEBUG: Form data = {request.form}")
-    print(f"DEBUG: JSON data = {request.get_json()}")
-    print(f"DEBUG: Headers = {request.headers.get('Content-Type')}")
+    # ✅ DEBUG logs
+    print(f"DEBUG: request.form = {dict(request.form)}")
+    print(f"DEBUG: request.headers = {dict(request.headers)}")
     
     student_id = request.form.get('student_id')
     class_id = request.form.get('class_id')
     
-    # ✅ DEBUG: Print extracted values
     print(f"DEBUG: student_id={student_id}, class_id={class_id}")
     
     if not student_id or not class_id:
@@ -119,7 +110,6 @@ def mark_manual():
             'message': f'Missing data: student_id={student_id}, class_id={class_id}'
         }), 400
     
-    # Check if already marked today
     today = date.today()
     existing = Attendance.query.filter_by(
         student_id=student_id,
@@ -130,7 +120,6 @@ def mark_manual():
     if existing:
         return jsonify({'status': 'already_marked', 'message': 'Already marked present today!'})
     
-    # Mark attendance
     attendance = Attendance(
         student_id=student_id,
         class_id=class_id,
