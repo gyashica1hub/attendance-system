@@ -88,9 +88,13 @@ def login():
 
             teacher = Teacher.query.filter_by(username=username).first()
 
+            # if teacher and teacher.check_password(password):
+            #     login_user(teacher)
+            #     return redirect(url_for('dashboard.index'))
+
             if teacher and teacher.check_password(password):
                 login_user(teacher)
-                return redirect(url_for('dashboard.index'))
+                return "LOGIN SUCCESS"
 
             flash('Invalid username or password!', 'danger')
 
