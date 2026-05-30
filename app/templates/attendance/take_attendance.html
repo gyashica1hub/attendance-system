@@ -120,6 +120,9 @@
 
 {% block extra_js %}
 <script>
+// ✅ CSRF Token from meta tag
+const csrfToken = "{{ csrf_token() }}";
+
 let video = document.getElementById('video');
 let canvas = document.getElementById('canvas');
 let btnScan = document.getElementById('btn-scan');
@@ -157,7 +160,7 @@ function stopCamera() {
 }
 
 {% if class_info %}
-// Manual attendance marking
+// ✅ Manual attendance marking with CSRF token
 async function markManual(studentId, studentName) {
     const formData = new FormData();
     formData.append('student_id', studentId);
@@ -166,6 +169,9 @@ async function markManual(studentId, studentName) {
     try {
         const response = await fetch('/attendance/mark-manual', {
             method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken  // ✅ CSRF Token added
+            },
             body: formData
         });
         
