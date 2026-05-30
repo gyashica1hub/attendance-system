@@ -52,58 +52,37 @@ def register():
     return render_template('auth/register.html')
 
 
-# @bp.route('/login', methods=['GET', 'POST'])
-# def login():
-#     if current_user.is_authenticated:
-#         return redirect(url_for('dashboard.index'))
-    
-#     if request.method == 'POST':
-#         username = request.form.get('username')
-#         password = request.form.get('password')
-        
-#         if not username or not password:
-#             flash('Please enter username and password!', 'danger')
-#             return redirect(url_for('auth.login'))
-        
-#         teacher = Teacher.query.filter_by(username=username).first()
-        
-#         if teacher and teacher.check_password(password):
-#             login_user(teacher)
-#             flash(f'Welcome back, {teacher.username}!', 'success')
-#             return redirect(url_for('dashboard.index'))
-        
-#         flash('Invalid username or password!', 'danger')
-    
-#     return render_template('auth/login.html')
-
 @bp.route('/login', methods=['GET', 'POST'])
 def login():
-    try:
-        if current_user.is_authenticated:
-            return redirect(url_for('dashboard.index'))
+    if current_user.is_authenticated:
+        return redirect(url_for('dashboard.index'))
 
-        if request.method == 'POST':
-            username = request.form.get('username')
-            password = request.form.get('password')
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
 
+        if not username or not password:
+            flash('Please enter username and password!', 'danger')
+            return redirect(url_for('auth.login'))
+
+        try:
             teacher = Teacher.query.filter_by(username=username).first()
-
-            # if teacher and teacher.check_password(password):
-            #     login_user(teacher)
-            #     return redirect(url_for('dashboard.index'))
 
             if teacher and teacher.check_password(password):
                 login_user(teacher)
-                return "LOGIN SUCCESS"
+                flash(f'Welcome back, {teacher.username}!', 'success')
+                return redirect(url_for('dashboard.index'))
 
             flash('Invalid username or password!', 'danger')
 
-        return render_template('auth/login.html')
+        except Exception as e:
+            flash(f'Login error: {str(e)}', 'danger')
+            print(f"LOGIN ERROR: {e}")
+            traceback.print_exc()
 
-    except Exception:
-        print("LOGIN ERROR")
-        traceback.print_exc()
-        raise
+    return render_template('auth/login.html')
+
+    
 
 @bp.route('/logout')
 @login_required
